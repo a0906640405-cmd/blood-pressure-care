@@ -1,0 +1,102 @@
+<div class="container">
+    
+    <div class="card">
+        <h2>📊 血壓紀錄與智能分析</h2>
+        <p style="font-size: 16px; color: #666;">請輸入您的血壓數值，系統將自動為您生成個人化飲食建議。</p>
+        
+        <div class="grid" style="background: #f0f4f8; padding: 20px; border-radius: 10px;">
+            <div>
+                <label>收縮壓 (高壓):</label>
+                <input type="number" id="sys" placeholder="例如: 125" style="width: 80%; padding: 10px; font-size: 18px;">
+            </div>
+            <div>
+                <label>舒張壓 (低壓):</label>
+                <input type="number" id="dia" placeholder="例如: 85" style="width: 80%; padding: 10px; font-size: 18px;">
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button onclick="analyzeBloodPressure()" class="btn" style="width: 100%; border: none; cursor: pointer;">開始分析並儲存</button>
+            </div>
+        </div>
+
+        <div id="resultArea" style="margin-top: 20px; display: none;">
+            <div id="statusTag" style="display: inline-block; padding: 5px 15px; border-radius: 5px; color: white; font-weight: bold; margin-bottom: 10px;"></div>
+            <div id="adviceBox" style="background: #fff3e0; border-left: 5px solid #ff9800; padding: 15px;">
+                </div>
+        </div>
+
+        <h3 style="margin-top: 30px;">🗓️ 最近五次紀錄</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 16px;">
+            <thead>
+                <tr style="background: #2A5C82; color: white;">
+                    <th style="padding: 10px;">日期</th>
+                    <th>數值 (SYS/DIA)</th>
+                    <th>狀態</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody">
+                </tbody>
+        </table>
+    </div>
+
+    </div>
+
+<script>
+    let history = [];
+
+    function analyzeBloodPressure() {
+        const sys = parseInt(document.getElementById('sys').value);
+        const dia = parseInt(document.getElementById('dia').value);
+
+        if (isNaN(sys) || isNaN(dia)) {
+            alert("請輸入完整的血壓數值");
+            return;
+        }
+
+        let status = "";
+        let color = "";
+        let advice = "";
+
+        // 1. 數據分析邏輯 (根據台灣高血壓學會指引)
+        if (sys < 120 && dia < 80) {
+            status = "正常";
+            color = "#27ae60";
+            advice = "<strong>您的血壓很完美！</strong> 建議維持目前的均衡飲食，並保持規律運動。可以多攝取全穀雜糧（如玄米、燕麥）來維持血管彈性。";
+        } else if ((sys >= 120 && sys < 130) && dia < 80) {
+            status = "血壓升高";
+            color = "#f1c40f";
+            advice = "<strong>注意囉！血壓稍高。</strong> 建議開始實施『輕鹽計畫』，減少外食沾醬，多吃含鉀蔬菜（如菠菜、空心菜）幫助鈉離子排出。";
+        } else if (sys >= 130 || dia >= 80) {
+            status = "高血壓前期/第一期";
+            color = "#e67e22";
+            advice = "<strong>請加強生活管理！</strong> 建議採用完整的 DASH 飲食：每日 5+5 蔬果，並以白肉（雞、魚）取代紅肉，減少飽和脂肪攝取。建議紀錄一週 722 數據並諮詢醫師。";
+        }
+
+        // 2. 顯示分析結果
+        const resArea = document.getElementById('resultArea');
+        const tag = document.getElementById('statusTag');
+        const box = document.getElementById('adviceBox');
+        
+        resArea.style.display = "block";
+        tag.textContent = status;
+        tag.style.backgroundColor = color;
+        box.innerHTML = `<h4>💡 個人化建議：</h4>${advice}`;
+
+        // 3. 更新歷史紀錄
+        const date = new Date().toLocaleDateString();
+        history.unshift({ date, val: `${sys}/${dia}`, status, color });
+        if (history.length > 5) history.pop(); // 僅保留最近五次
+
+        updateHistoryTable();
+    }
+
+    function updateHistoryTable() {
+        const body = document.getElementById('historyBody');
+        body.innerHTML = history.map(item => `
+            <tr style="border-bottom: 1px solid #ddd; text-align: center;">
+                <td style="padding: 10px;">${item.date}</td>
+                <td>${item.val}</td>
+                <td style="color: ${item.color}; font-weight: bold;">${item.status}</td>
+            </tr>
+        `).join('');
+    }
+</script>
